@@ -45,7 +45,7 @@ class Intersection:
             self.wait_queue.popleft()
             self.waiting_cars.remove(car)
         self.car = car
-        next_node = car.select_next_node()
+        next_node = car.select_next_node(self)
         dir_diff = self.out_directions[next_node].value - self.in_directions[prev_node].value
         self.clear_time = Intersection.CLEAR_TIMES[dir_diff % Intersection.N_BRANCHES]
         self.cur_out_lane = self.out_lanes[next_node]

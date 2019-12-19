@@ -1,6 +1,7 @@
 """Directional edge connecting 2 nodes in traffic network"""
 class Lane:
     def __init__(self, length, prev_node, out_direction, next_node, in_direction):
+        self.length = length
         self.prev_node = prev_node
         self.next_node = next_node
         # connect the 2 nodes
