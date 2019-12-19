@@ -15,6 +15,6 @@ class CarSpawner:
         r = random.random()
         if r > self.spawn_prob:
             return
-        destination = random.choices(destinations, weights=self.dest_weights)
+        destination = random.choices(self.destinations, weights=self.dest_weights)[0]
         car = Car(self.out_lane.next_node, destination)
         self.out_lane.enter(car)

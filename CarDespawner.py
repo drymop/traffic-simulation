@@ -14,3 +14,7 @@ class CarDespawner:
         # simply despawn the car
         # TODO maybe report on stats later
         return True
+
+    def update(self):
+        # do nothing
+        pass

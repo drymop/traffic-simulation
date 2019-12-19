@@ -2,24 +2,24 @@ import heapq
 import math
 
 
-class Car:
 """A car"""
+class Car:
 
     num_cars = 0
 
     def __init__(self, origin, destination):
-        self.car_id = num_cars
-        num_cars += 1
+        self.car_id = Car.num_cars
+        Car.num_cars += 1
         self.destination = destination
-        self._rev_path = _dijkstra(origin, destination)
+        self._rev_path = self._dijkstra(origin, destination)
 
-    def _dijkstra(origin, destination):
+    def _dijkstra(self, origin, destination):
         """Find the (reversed) shortest path from origin to destination"""
         dist = {origin: 0}
         prev = {}
         q = [(0, origin)]
         while q:
-            d, node = heaq.heappop(q)
+            d, node = heapq.heappop(q)
             if node == destination:
                 break
             if d >= dist.get(node, math.inf):
@@ -29,8 +29,8 @@ class Car:
                 if d2 < dist.get(next_node, math.inf):
                     dist[next_node] = d2
                     prev[next_node] = node
+                    heapq.heappush(q, (d2, next_node))
         rev_path = [destination]
-        node = destination
         while node in prev:
             prev_node = prev[node]
             path.append(prev_node)

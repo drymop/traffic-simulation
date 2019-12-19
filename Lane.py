@@ -27,6 +27,16 @@ class Lane:
             self.cars[0] = None
             self.n_cars -= 1
         # move each car forward if possible
-        for i in range(1, length(self.cars)):
+        for i in range(1, len(self.cars)):
             if not self.cars[i-1]:
                 self.cars[i-1], self.cars[i] = self.cars[i], None
+
+    def __str__(self):
+        cells = []
+        for car in self.cars:
+            if car:
+                s = "%4d" % car.car_id
+            else:
+                s = "    "
+            cells.append(s)
+        return " | ".join(cells)
