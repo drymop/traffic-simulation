@@ -1,14 +1,19 @@
-"""Directional edge in traffic network"""
+"""Directional edge connecting 2 nodes in traffic network"""
 class Lane:
-    def __init__(self, length, prev_node=None, next_node=None):
+    def __init__(self, length, prev_node, out_direction, next_node, in_direction):
+        self.prev_node = prev_node
         self.next_node = next_node
+        # connect the 2 nodes
+        prev_node.set_out_lane(out_direction, self)
+        next_node.set_in_lane(in_direction, self)
+        # keep track of cars on the lane
         self.cars = [None] * length
         self.n_cars = 0
 
     def can_enter(self):
         return self.cars[-1] is None
 
-    def enter(self, prev_node, car):
+    def enter(self, car):
         if not self.cars[-1] is None:
             return False
         self.cars[-1] = car
@@ -18,7 +23,7 @@ class Lane:
     def update(self):
         # if there is a car at the "end" of the lane,
         # forward to the next traffic node if possible
-        if self.cars[0] and self.next_node.enter(self, self.cars[0]):
+        if self.cars[0] and self.next_node.enter(self.prev_node, self.cars[0]):
             self.cars[0] = None
             self.n_cars -= 1
         # move each car forward if possible
