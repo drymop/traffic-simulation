@@ -1,3 +1,4 @@
+from collections import deque
 import math
 
 
@@ -13,9 +14,15 @@ class Intersection:
         self.out_directions = {}  # map outlet node to its direction
         self.out_lanes = {}       # map outlet node to the corresponding lane
 
+        # keep track of the car within this intersection
         self.car = None
         self.clear_time = math.inf
         self.cur_out_lane = None
+
+        # queue of car waiting to enter
+        self.wait_queue = deque()
+        self.waiting_cars = set()
+
 
     def set_in_lane(self, direction, lane):
         self.in_directions[lane.prev_node] = direction
@@ -24,12 +31,19 @@ class Intersection:
         self.out_directions[lane.next_node] = direction
         self.out_lanes[lane.next_node] = lane
 
-    def can_enter(self):
-        return self.car is None
-
     def enter(self, prev_node, car):
         if self.car is not None:
+            # the car has to wait because intersection is occupied
+            # add the car to the wait queue, if it's not already in the queue
+            if car not in self.waiting_cars:
+                self.waiting_cars.add(car)
+                self.wait_queue.append(car)
             return False
+        if self.wait_queue and self.wait_queue[0] != car:
+            return False
+        if self.wait_queue:
+            self.wait_queue.popleft()
+            self.waiting_cars.remove(car)
         self.car = car
         next_node = car.select_next_node()
         dir_diff = self.out_directions[next_node].value - self.in_directions[prev_node].value

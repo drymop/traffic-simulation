@@ -10,9 +10,6 @@ class Lane:
         self.cars = [None] * length
         self.n_cars = 0
 
-    def can_enter(self):
-        return self.cars[-1] is None
-
     def enter(self, car):
         if not self.cars[-1] is None:
             return False
