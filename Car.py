@@ -37,7 +37,7 @@ class Car:
             node = prev_node
         return rev_path
 
-    def select_node(self):
+    def select_next_node(self):
         """Select which of the next traffic node to travel to"""
         return self._rev_path.pop()
 

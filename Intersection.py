@@ -1,8 +1,11 @@
+import math
+
+
 """Traffic node: a small, standard 4-way intersection"""
 class Intersection:
     N_BRANCHES = 4
     # time to clear intersection, from the distance of in and out lane
-    CLEAR_TIMES = [1, 2, 1, 0]
+    CLEAR_TIMES = [2, 3, 2, 1]
 
     def __init__(self):
         # store the in and out connections
@@ -11,7 +14,7 @@ class Intersection:
         self.out_lanes = {}       # map outlet node to the corresponding lane
 
         self.car = None
-        self.clear_time = -1
+        self.clear_time = math.inf
         self.cur_out_lane = None
 
     def set_in_lane(self, direction, lane):
@@ -39,5 +42,12 @@ class Intersection:
             # if car has been in intersection for long enough,
             # forward it to the next node 
             self.car = None
+            self.clear_time = math.inf
         else:
             self.clear_time -= 1
+
+    def __str__(self):
+        if self.car:
+            return "%3d (%3d)" % (self.car.car_id, self.clear_time)
+        else:
+            return " (empty) "
