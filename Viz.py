@@ -1,4 +1,4 @@
-from tkinter import Tk, Canvas
+from tkinter import Tk, Canvas, Label
 import time
 
 from CarSpawner import CarSpawner
@@ -44,6 +44,8 @@ class Viz():
         self.canvas = Canvas(self.master)
         self.canvas.pack(fill="both", expand=True)
 
+        self.labels = []
+
     def __initIntersections(self):
         """Initialize intersections"""
         for i in range(len(self.interMatrix)):
@@ -52,7 +54,7 @@ class Viz():
                     self.__drawInter(i, j)
 
 
-    def __drawUsingPrev(self, lane, toDespawner):
+    def __drawUsingPrev(self, lane, label, toDespawner):
         prev_out_dir = lane.prev_out_dir
         coordsPrev = self.canvas.coords(lane.prev_node.vizSquare)
         length = lane.length * self.laneUnit
@@ -63,6 +65,8 @@ class Viz():
                     coordsPrev[2],
                     coordsPrev[1]
             )
+            labCoords = (coords[2] + 0.75 * self.laneUnit,
+                    (coords[1] + coords[3]) / 2)
         elif prev_out_dir == Direction.SOUTH:
             coords = (
                     coordsPrev[0],
@@ -70,6 +74,7 @@ class Viz():
                     coordsPrev[0] + self.laneWidth,
                     coordsPrev[3] + length
             )
+            labCoords = (coords[0] - self.laneUnit, (coords[1] + coords[3]) / 2)
         elif prev_out_dir == Direction.EAST:
             coords = (
                     coordsPrev[2],
@@ -77,6 +82,8 @@ class Viz():
                     coordsPrev[2] + length,
                     coordsPrev[3]
             )
+            labCoords = ((coords[0] + coords[2]) / 2,
+                    coords[3] + 0.75 * self.laneUnit)
         elif prev_out_dir == Direction.WEST:
             coords = (
                     coordsPrev[0] - length,
@@ -84,11 +91,14 @@ class Viz():
                     coordsPrev[0],
                     coordsPrev[1] + self.laneWidth
             )
+            labCoords = ((coords[0] + coords[2]) / 2, coords[1] - 1.5 *
+                    self.laneUnit)
         color = "purple" if toDespawner else None
         self.__drawLane(lane, *coords, color)
+        self.__placeLabel(label, *labCoords)
 
 
-    def __drawUsingNext(self, lane, fromSpawner):
+    def __drawUsingNext(self, lane, label, fromSpawner):
         next_in_dir = lane.next_in_dir
         coordsNext = self.canvas.coords(lane.next_node.vizSquare)
         length = lane.length * self.laneUnit
@@ -99,6 +109,7 @@ class Viz():
                     coordsNext[0] + self.laneWidth,
                     coordsNext[1]
             )
+            labCoords = (coords[0] - self.laneUnit, (coords[1] + coords[3]) / 2)
         elif next_in_dir == Direction.SOUTH:
             coords = (
                     coordsNext[2] - self.laneWidth,
@@ -106,6 +117,8 @@ class Viz():
                     coordsNext[2],
                     coordsNext[3] + length
             )
+            labCoords = (coords[2] + 0.75 * self.laneUnit,
+                    (coords[1] + coords[3]) / 2)
         elif next_in_dir == Direction.EAST:
             coords = (
                     coordsNext[2],
@@ -113,6 +126,7 @@ class Viz():
                     coordsNext[2] + length,
                     coordsNext[1] + self.laneWidth
             )
+            labCoords = ((coords[0] + coords[2]) / 2, coords[1] - self.laneUnit)
         elif next_in_dir == Direction.WEST:
             coords = (
                     coordsNext[0] - length,
@@ -120,19 +134,34 @@ class Viz():
                     coordsNext[0],
                     coordsNext[3]
             )
+            labCoords = ((coords[0] + coords[2]) / 2, coords[3] + 0.75 *
+                    self.laneUnit)
         color = "pink" if fromSpawner else None
         self.__drawLane(lane, *coords, color)
+        self.__placeLabel(label, *labCoords)
+
+
+    def __labelText(self, label, text):
+        label.configure(text=text)
+
+    def __placeLabel(self, label, x, y):
+        label.place(x=x, y=y)
 
 
     def __initLanes(self):
         """Initialize lanes"""
+        i = 0
         for lane in self.lanes:
+            # Label corresponding to lanes[i]
+            self.labels.append(Label(self.master, text="0"))
             if lane.prev_out_dir:  # Can use prev as basis for lane dim calc
-                self.__drawUsingPrev(lane, isinstance(lane.next_node,
-                    CarDespawner))
+                self.__drawUsingPrev(lane, self.labels[i],
+                        isinstance(lane.next_node, CarDespawner))
             elif lane.next_in_dir:  # Can use next as basis for lane dim calc
-                self.__drawUsingNext(lane, isinstance(lane.prev_node,
-                    CarSpawner))
+                self.__drawUsingNext(lane, self.labels[i],
+                        isinstance(lane.prev_node, CarSpawner))
+
+            i += 1
 
 
     def initTrafficNetwork(self):
@@ -142,7 +171,12 @@ class Viz():
 
     def update(self):
         self.__updateInterColors()
+        self.__updateLaneText()
         self.master.update()
+
+    def __updateLaneText(self):
+        for i in range(len(self.lanes)):
+            self.__labelText(self.labels[i], str(self.lanes[i].n_cars))
 
     def __updateInterColors(self):
         for i in range(len(self.interMatrix)):
