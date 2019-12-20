@@ -163,7 +163,6 @@ class Viz():
         y = (i - self.interCenter[1]) \
             * (2 * self.laneUnit + self.laneUnit * self.baseLaneLength) \
             + self.canvasCenter[1]
-        print("Drawing inter[{}][{}] at canvas ({},{})".format(i, j, x, y))
         self.interMatrix[i][j].vizSquare = self.canvas.create_rectangle(x, y,
                 x + 2 * self.laneUnit, y + 2 * self.laneUnit,
                 fill="black")
@@ -229,8 +228,9 @@ if __name__ == "__main__":
     root = Tk()
     viz = Viz(interMatrix, lanes, baseLaneLen, root)
 
-    pause = 3
-    for i in range(100):
+    pause = 1
+    for x in range(100):
+        print("Iter", x)
         for i in range(len(interMatrix)):
             for j in range(len(interMatrix[0])):
                 if interMatrix[i][j]:

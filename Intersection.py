@@ -63,6 +63,9 @@ class Intersection:
         else:
             self.clear_time -= 1
 
+        if self.car:
+            print("HELLO")
+
     def __str__(self):
         if self.car:
             return "%3d (%3d)" % (self.car.car_id, self.clear_time)
