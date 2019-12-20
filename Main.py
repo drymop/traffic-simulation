@@ -18,8 +18,13 @@ def main():
     matrix = [[Intersection() for j in range(col)] for i in range(row)]
     #matrix = [[Roundabout(1) for j in range(col)] for i in range(row)]
 
+<<<<<<< HEAD
     despawns = [CarDespawner() for i in range(row * 4)]
     spawns = [CarSpawner(0.5, despawns) for i in range(col * 4)]
+=======
+    despawns = [CarDespawner(), CarDespawner()]
+    spawns = [CarSpawner(0.5, despawns), CarSpawner(0.5, despawns)]
+>>>>>>> 72fb3b3fbead6b450b01c258374b5d9175875c81
 
     # connect lanes
     baseLaneLen = 5  # TODO: Change this for roundabout to 3
