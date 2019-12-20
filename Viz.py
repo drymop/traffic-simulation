@@ -5,16 +5,17 @@ from CarSpawner import CarSpawner
 from CarDespawner import CarDespawner
 from Direction import Direction
 from Intersection import Intersection
+from Roundabout import Roundabout
 from Lane import Lane
 
 """Visualization of traffic network"""
 class Viz():
-    def __init__(self, interMatrix, lanes, baseLaneLength, master):
+    def __init__(self, matrix, lanes, baseLaneLength, master):
         # intersection that will be at center of canvas
-        self.interCenter = (len(interMatrix[0]) // 2, len(interMatrix) // 2)
+        self.interCenter = (len(matrix[0]) // 2, len(matrix) // 2)
         self.lanes = lanes
 
-        self.interMatrix = interMatrix
+        self.matrix = matrix
         self.baseLaneLength = baseLaneLength
 
         self.master = master
@@ -48,15 +49,18 @@ class Viz():
 
     def __initIntersections(self):
         """Initialize intersections"""
-        for i in range(len(self.interMatrix)):
-            for j in range(len(self.interMatrix[0])):
-                if self.interMatrix[i][j]:
+        for i in range(len(self.matrix)):
+            for j in range(len(self.matrix[0])):
+                if self.matrix[i][j]:
                     self.__drawInter(i, j)
 
 
     def __drawUsingPrev(self, lane, label, toDespawner):
         prev_out_dir = lane.prev_out_dir
-        coordsPrev = self.canvas.coords(lane.prev_node.vizSquare)
+        if isinstance(lane.prev_node, Intersection):
+            coordsPrev = self.canvas.coords(lane.prev_node.vizSquare)
+        elif isinstance(lane.prev_node, Roundabout):
+            coordsPrev = self.canvas.coords(lane.prev_node.vizCircle)
         length = lane.length * self.laneUnit
         if prev_out_dir == Direction.NORTH:
             coords = (
@@ -100,7 +104,10 @@ class Viz():
 
     def __drawUsingNext(self, lane, label, fromSpawner):
         next_in_dir = lane.next_in_dir
-        coordsNext = self.canvas.coords(lane.next_node.vizSquare)
+        if isinstance(lane.next_node, Intersection):
+            coordsNext = self.canvas.coords(lane.next_node.vizSquare)
+        elif isinstance(lane.next_node, Roundabout):
+            coordsNext = self.canvas.coords(lane.next_node.vizCircle)
         length = lane.length * self.laneUnit
         if next_in_dir == Direction.NORTH:
             coords = (
@@ -179,25 +186,50 @@ class Viz():
             self.__labelText(self.labels[i], str(self.lanes[i].n_cars))
 
     def __updateInterColors(self):
-        for i in range(len(self.interMatrix)):
-            for j in range(len(self.interMatrix[0])):
-                if self.interMatrix[i][j]:
-                    if self.interMatrix[i][j].car:
-                        self.__updateInter(i, j, True)
-                    else:
-                        self.__updateInter(i, j, False)
+        for i in range(len(self.matrix)):
+            for j in range(len(self.matrix[0])):
+                if self.matrix[i][j]:
+                    if isinstance(self.matrix[i][j], Intersection):
+                        if self.matrix[i][j].car:
+                            self.__updateInter(i, j, True)
+                        else:
+                            self.__updateInter(i, j, False)
+                    elif isinstance(self.matrix[i][j], Roundabout):
+                        if self.matrix[i][j].n_cars > 0:
+                            self.__updateInter(i, j, True)
+                        else:
+                            self.__updateInter(i, j, False)
+
 
 
     def __drawInter(self, i, j):
-        """Draw square for intersection interMatrix[i][j].
-        Squares are defined by top left coordinate."""
+        """Draw square for intersection matrix[i][j].
+        Squares are defined by top left coordinate.
+        Draw circle for roundabout matrix[i][j]"""
+        if isinstance(self.matrix[i][j], Intersection):
+            self.__drawSquare(i, j)
+        elif isinstance(self.matrix[i][j], Roundabout):
+            self.__drawCircle(i, j)
+
+    def __drawCircle(self, i, j):
         x = (j - self.interCenter[0]) \
             * (2 * self.laneUnit + self.laneUnit * self.baseLaneLength) \
             + self.canvasCenter[0]
         y = (i - self.interCenter[1]) \
             * (2 * self.laneUnit + self.laneUnit * self.baseLaneLength) \
             + self.canvasCenter[1]
-        self.interMatrix[i][j].vizSquare = self.canvas.create_rectangle(x, y,
+        self.matrix[i][j].vizCircle = self.canvas.create_oval(x, y,
+                x + 2 * self.laneUnit, y + 2 * self.laneUnit,
+                fill="black")
+
+    def __drawSquare(self, i, j):
+        x = (j - self.interCenter[0]) \
+            * (2 * self.laneUnit + self.laneUnit * self.baseLaneLength) \
+            + self.canvasCenter[0]
+        y = (i - self.interCenter[1]) \
+            * (2 * self.laneUnit + self.laneUnit * self.baseLaneLength) \
+            + self.canvasCenter[1]
+        self.matrix[i][j].vizSquare = self.canvas.create_rectangle(x, y,
                 x + 2 * self.laneUnit, y + 2 * self.laneUnit,
                 fill="black")
 
@@ -209,71 +241,81 @@ class Viz():
     def __updateInter(self, i, j, occupied):
         """Update intersection color to red if occupied"""
         if occupied:
-            self.canvas.itemconfig(self.interMatrix[i][j].vizSquare,
-                fill="red")
+            if isinstance(self.matrix[i][j], Intersection):
+                self.canvas.itemconfig(self.matrix[i][j].vizSquare,
+                    fill="red")
+            elif isinstance(self.matrix[i][j], Roundabout):
+                print("HOLA")
+                self.canvas.itemconfig(self.matrix[i][j].vizCircle,
+                    fill="red")
         else:
-            self.canvas.itemconfig(self.interMatrix[i][j].vizSquare,
-                fill="black")
+            if isinstance(self.matrix[i][j], Intersection):
+                self.canvas.itemconfig(self.matrix[i][j].vizSquare,
+                    fill="black")
+            elif isinstance(self.matrix[i][j], Roundabout):
+                self.canvas.itemconfig(self.matrix[i][j].vizCircle,
+                    fill="black")
 
 
-def connect(lanes, length, i0, j0, i1, j1):
+def connect(lanes, matrix, length, i0, j0, i1, j1):
     if i0 == i1:  # horizontal
-        lanes.append(Lane(length, interMatrix[i0][j0], Direction.EAST,
-            interMatrix[i1][j1], Direction.WEST))
-        lanes.append(Lane(length, interMatrix[i1][j1], Direction.WEST,
-            interMatrix[i0][j0], Direction.EAST))
+        lanes.append(Lane(length, matrix[i0][j0], Direction.EAST,
+            matrix[i1][j1], Direction.WEST))
+        lanes.append(Lane(length, matrix[i1][j1], Direction.WEST,
+            matrix[i0][j0], Direction.EAST))
     else:  # vertical
-        lanes.append(Lane(length, interMatrix[i0][j0], Direction.SOUTH,
-            interMatrix[i1][j1], Direction.NORTH))
-        lanes.append(Lane(length, interMatrix[i1][j1], Direction.NORTH,
-            interMatrix[i0][j0], Direction.SOUTH))
+        lanes.append(Lane(length, matrix[i0][j0], Direction.SOUTH,
+            matrix[i1][j1], Direction.NORTH))
+        lanes.append(Lane(length, matrix[i1][j1], Direction.NORTH,
+            matrix[i0][j0], Direction.SOUTH))
 
 if __name__ == "__main__":
     row, col = 3, 3
-    interMatrix = [[Intersection() for j in range(col)] for i in range(row)]
+    #matrix = [[Intersection() for j in range(col)] for i in range(row)]
+    matrix = [[Roundabout(1) for j in range(col)] for i in range(row)]
     # make a few of them None
-    interMatrix[0][2] = None
-    interMatrix[2][1] = None
+    matrix[0][2] = None
+    matrix[2][1] = None
 
     d = CarDespawner()
     spawns = [CarSpawner(0.5, [d]), CarSpawner(0.5, [d])]
 
     # connect lanes
-    baseLaneLen = 5
+    baseLaneLen = 3
     lanes = []
 
     # spawn/despawn lanes first
-    lanes.append(Lane(baseLaneLen, spawns[0], None, interMatrix[0][0],
+    lanes.append(Lane(baseLaneLen, spawns[0], None, matrix[0][0],
         Direction.WEST))
-    lanes.append(Lane(baseLaneLen, spawns[1], None, interMatrix[2][2],
+    lanes.append(Lane(baseLaneLen, spawns[1], None, matrix[2][2],
         Direction.SOUTH))
-    lanes.append(Lane(baseLaneLen, interMatrix[2][0], Direction.SOUTH, d, None))
+    lanes.append(Lane(baseLaneLen, matrix[2][0], Direction.SOUTH, d, None))
 
     # always order endpoints as northern node, southern node OR
     #                           western node, eastern node
-    connect(lanes, baseLaneLen, 0, 0, 0, 1)
-    connect(lanes, baseLaneLen, 0, 0, 1, 0)
-    connect(lanes, baseLaneLen, 1, 0, 1, 1)
-    connect(lanes, baseLaneLen, 0, 1, 1, 1)
-    connect(lanes, baseLaneLen, 1, 0, 2, 0)
-    connect(lanes, baseLaneLen, 1, 1, 1, 2)
-    connect(lanes, baseLaneLen, 1, 2, 2, 2)
+    connect(lanes, matrix, baseLaneLen, 0, 0, 0, 1)
+    connect(lanes, matrix, baseLaneLen, 0, 0, 1, 0)
+    connect(lanes, matrix, baseLaneLen, 1, 0, 1, 1)
+    connect(lanes, matrix, baseLaneLen, 0, 1, 1, 1)
+    connect(lanes, matrix, baseLaneLen, 1, 0, 2, 0)
+    connect(lanes, matrix, baseLaneLen, 1, 1, 1, 2)
+    connect(lanes, matrix, baseLaneLen, 1, 2, 2, 2)
 
     root = Tk()
-    viz = Viz(interMatrix, lanes, baseLaneLen, root)
+    viz = Viz(matrix, lanes, baseLaneLen, root)
 
     pause = 1
     for x in range(100):
         print("Iter", x)
-        for i in range(len(interMatrix)):
-            for j in range(len(interMatrix[0])):
-                if interMatrix[i][j]:
-                    interMatrix[i][j].update()
-
-        d.update()
+        for i in range(len(matrix)):
+            for j in range(len(matrix[0])):
+                if matrix[i][j]:
+                    matrix[i][j].update()
 
         for lane in lanes:
             lane.update()
+
+        d.update()
 
         for spawn in spawns:
             spawn.update()

@@ -23,6 +23,9 @@ class Roundabout:
         self.out_positions = [(quarter_arc_len+2) * i for i in range(Roundabout.N_BRANCHES)]
         self.in_positions  = [p+1 for p in self.out_positions]
 
+        # viz stuff
+        self.vizCircle = None
+
 
     def set_in_lane(self, direction, lane):
         self.in_directions[lane.prev_node] = direction
