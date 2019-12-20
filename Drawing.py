@@ -231,11 +231,23 @@ if __name__ == "__main__":
 
     pause = 3
     for i in range(100):
+        for i in range(len(interMatrix)):
+            for j in range(len(interMatrix[0])):
+                if interMatrix[i][j]:
+                    interMatrix[i][j].update()
+
+        d.update()
+
+        for lane in lanes:
+            lane.update()
+
+        for spawn in spawns:
+            spawn.update()
 
         # Then update viz
         viz.update()
 
-        #time.sleep(pause)
+        time.sleep(pause)
 
     # Close window to terminate
     root.mainloop()
