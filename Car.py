@@ -7,10 +7,11 @@ class Car:
 
     num_cars = 0
 
-    def __init__(self, origin, destination):
+    def __init__(self, origin, destination, start_time):
         self.car_id = Car.num_cars
         Car.num_cars += 1
         self.destination = destination
+        self.start_time = start_time
         self._next_node = self._dijkstra(origin, destination)
 
     def _dijkstra(self, origin, destination):

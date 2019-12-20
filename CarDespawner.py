@@ -1,6 +1,7 @@
 class CarDespawner:
-    def __init__(self):
+    def __init__(self, stats):
         self.out_lanes = {}
+        self.stats = stats
         pass
 
     def set_in_lane(self, direction, lane):
@@ -9,7 +10,8 @@ class CarDespawner:
 
     def enter(self, prev_node, car):
         # simply despawn the car
-        # TODO maybe report on stats later
+        car_time = self.stats.cur_time - car.start_time
+        self.stats.car_times.append(car_time)
         return True
 
     def update(self):

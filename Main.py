@@ -1,5 +1,6 @@
 from tkinter import Tk, Canvas, Label
 import time
+import random
 
 from CarSpawner import CarSpawner
 from CarDespawner import CarDespawner
@@ -8,21 +9,33 @@ from Intersection import Intersection
 from Roundabout import Roundabout
 from Lane import Lane
 from Viz import Viz, connect
+from Stats import Stats
+
 
 def main():
-    VIZ = True  # Set to True for visualization
+    #CHANGE THESE FLAGS TO CONTROL THE EXPERIMENT
+
+    VIZ = False  # Set to True for visualization
+    USE_ROUNDABOUT = True # Set to True to use roundabout
+    PAUSE = 0.1 # time (in sec) between each update, if VIZ is True
+    MAX_TIME = 1000000
+    SEED = 0
+    SPAWN_PROB = 0.1
 
     row, col = 2, 2
+    stat = Stats()
 
-    # TODO: This is the line to replace for intersection type
-    matrix = [[Intersection() for j in range(col)] for i in range(row)]
-    #matrix = [[Roundabout(1) for j in range(col)] for i in range(row)]
+    # grid of intersection/roundabout
+    if USE_ROUNDABOUT:
+        matrix = [[Roundabout(1) for j in range(col)] for i in range(row)]
+    else:
+        matrix = [[Intersection() for j in range(col)] for i in range(row)]
 
-    despawns = [CarDespawner() for i in range(row * 4)]
-    spawns = [CarSpawner(0.5, despawns) for i in range(col * 4)]
+    despawns = [CarDespawner(stat) for i in range(row * 4)]
+    spawns = [CarSpawner(stat, SPAWN_PROB, despawns) for i in range(col * 4)]
 
     # connect lanes
-    baseLaneLen = 5  # TODO: Change this for roundabout to 3
+    baseLaneLen = 10
     lanes = []
 
     # spawn/despawn lanes first
@@ -71,8 +84,8 @@ def main():
         root = Tk()
         viz = Viz(matrix, lanes, baseLaneLen, root)
 
-    pause = 1
-    for x in range(100):
+    random.seed(SEED)
+    for x in range(MAX_TIME):
         for i in range(len(matrix)):
             for j in range(len(matrix[0])):
                 if matrix[i][j]:
@@ -81,16 +94,19 @@ def main():
         for lane in lanes:
             lane.update()
 
-        for despawn in despawns:
-            despawn.update()
-
         for spawn in spawns:
             spawn.update()
+
+        stat.cur_time += 1
 
         # Then update viz
         if VIZ:
             viz.update()
-            time.sleep(pause)
+            time.sleep(PAUSE)
+
+    print(len(stat.car_times))
+    print(sum(stat.car_times)/len(stat.car_times))
+    print(stat.n_rejected)
 
     # Close window to terminate
     if VIZ:
