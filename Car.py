@@ -17,9 +17,11 @@ class Car:
         """Find the shortest path from origin to destination"""
         dist = {origin: 0}
         prev = {}
-        q = [(0, origin)]
+        # queue store triplet of distance, id, node
+        # id is needed for tie-break
+        q = [(0, id(origin), origin)]
         while q:
-            d, node = heapq.heappop(q)
+            d, _, node = heapq.heappop(q)
             if node == destination:
                 break
             if d > dist.get(node, math.inf):
@@ -29,7 +31,7 @@ class Car:
                 if d2 < dist.get(next_node, math.inf):
                     dist[next_node] = d2
                     prev[next_node] = node
-                    heapq.heappush(q, (d2, next_node))
+                    heapq.heappush(q, (d2, id(next_node), next_node))
         next_node = {}
         node = destination
         while node in prev:
