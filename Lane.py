@@ -11,6 +11,12 @@ class Lane:
         self.cars = [None] * length
         self.n_cars = 0
 
+        self.prev_out_dir = out_direction
+        self.next_in_dir = in_direction
+
+        # Viz stuff
+        self.vizRect = None
+
     def enter(self, car):
         if not self.cars[-1] is None:
             return False

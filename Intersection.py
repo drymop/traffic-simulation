@@ -23,6 +23,9 @@ class Intersection:
         self.wait_queue = deque()
         self.waiting_cars = set()
 
+        # viz stuff
+        self.vizSquare = None
+
 
     def set_in_lane(self, direction, lane):
         self.in_directions[lane.prev_node] = direction
@@ -54,11 +57,14 @@ class Intersection:
     def update(self):
         if self.clear_time <= 0 and self.cur_out_lane.enter(self.car):
             # if car has been in intersection for long enough,
-            # forward it to the next node 
+            # forward it to the next node
             self.car = None
             self.clear_time = math.inf
         else:
             self.clear_time -= 1
+
+        if self.car:
+            print("HELLO")
 
     def __str__(self):
         if self.car:
