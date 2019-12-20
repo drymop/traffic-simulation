@@ -1,5 +1,6 @@
 class CarDespawner:
     def __init__(self):
+        self.out_lanes = {}
         pass
 
     def set_in_lane(self, direction, lane):
