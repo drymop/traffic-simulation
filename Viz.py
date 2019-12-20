@@ -216,8 +216,8 @@ if __name__ == "__main__":
         Direction.SOUTH))
     lanes.append(Lane(baseLaneLen, interMatrix[2][0], Direction.SOUTH, d, None))
 
-    # always order endpoints as northern point, southern point OR
-    #                           western point, eastern point
+    # always order endpoints as northern node, southern node OR
+    #                           western node, eastern node
     connect(lanes, baseLaneLen, 0, 0, 0, 1)
     connect(lanes, baseLaneLen, 0, 0, 1, 0)
     connect(lanes, baseLaneLen, 1, 0, 1, 1)
